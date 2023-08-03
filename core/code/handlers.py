@@ -1,17 +1,38 @@
-import aiogram
-import random
 from another_defs import *
+from keyboards import *
+from aiogram import Bot, types, Dispatcher
+import logging
 
-bot = aiogram.Bot(token="5911014461:AAEpNu3TJxxOy5Pr22AXjSn1qJ-f6bex-8A")
+logging.basicConfig(level=logging.INFO)
 
-dp = aiogram.Dispatcher(bot)
+API_TOKEN = "5911014461:AAEpNu3TJxxOy5Pr22AXjSn1qJ-f6bex-8A"
+CHANNEL_ID = '@RaptorsSquad'
+
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
 
 initialize_user_db()
 
-
 @dp.message_handler(commands=['start'])
+async def cmd_start(message: types.Message):
+    await message.answer("Что-бы начать подпишитесь на канал", reply_markup=keyboard)
+
+# Обработчик callback_query
+@dp.callback_query_handler(lambda c: c.data == 'check')
+async def process_callback(callback_query: types.CallbackQuery):
+    # проверяем подписку на канал
+    member = await bot.get_chat_member('@RaptorsSquad', callback_query.from_user.id)
+    if member.status in ['member', 'administrator', 'creator']:
+        await bot.answer_callback_query(callback_query.id, "Вы подписаны на канал!")
+        await start(callback_query.message)
+    else:
+        await bot.answer_callback_query(callback_query.id, "Вы не подписаны на канал!")
+        await cmd_start(callback_query.message)
+
+
 async def start(message: types.Message):
     await message.answer('Добро пожаловать в литературный квест по Санкт-Петербургу! Нажмите кнопку "Начать квест", чтобы начать.', reply_markup=keyboard_start)
+
 
 @dp.message_handler(lambda message: message.text == 'Начать квест')
 async def start_quest(message: types.Message):
@@ -28,7 +49,6 @@ async def firststep(message: types.Message):
     await message.answer(f'Место: {place_name}\n', reply_markup=keyboard_continue_1)
     await message.answer_location(latitude, longitude)
 
-# Обработчик кнопки "Я в нужной точке"
 @dp.message_handler(lambda message: message.text == 'Я в нужной точке')
 async def nextstep(message: types.Message):
     place_index = get_user_place_index(message.from_user.id)
@@ -43,7 +63,6 @@ async def nextstep(message: types.Message):
     await message.answer(place_description, reply_markup=keyboard_continue)
 
 
-# Обработчик кнопки "Перейти к следующему месту"
 @dp.message_handler(lambda message: message.text == 'Перейти к следующему месту')
 async def continue_quest(message: types.Message):
     place_index = get_user_place_index(message.from_user.id) + 1
@@ -53,21 +72,38 @@ async def continue_quest(message: types.Message):
     else:
         await message.answer('Поздравляем! Вы завершили квест.', reply_markup=keyboard_start)
 
-# Обработчик кнопки "Факт"
+
 @dp.message_handler(lambda message: message.text == 'Факт')
 async def choose_random_fact(message: types.Message):
-    user_id = message.from_user.id
-    user_facts = get_user_facts(user_id)
-    remaining_facts = len(user_facts)
-    if remaining_facts > 0:
-        fact = random.choice(facts)
-        facts.remove(fact)
+    user_facts = get_user_facts(message.from_user.id)
+    if not user_facts:
+        create_new_user(message.from_user.id)
+        user_facts = get_user_facts(message.from_user.id)
+
+    if len(user_facts) != 0:
+        fact = random.choice(user_facts)
+        user_facts.remove(fact)
+        update_user_facts(message.from_user.id, user_facts)
         await message.answer(f"Факт: {fact}")
-        await message.answer(f"Вы услышали: {remaining_facts}/30")
-        update_user_facts(user_id)
+        await message.answer(f"Осталось: {len(user_facts)}/30 фактов")
 
-
-    else:
-        await message.answer("Вы узнали все факты", reply_markup=keyboard_continue_1f)
+    # Если фактов нет, сразу уведомляем пользователя и переходим к следующему шагу
+    if len(user_facts) == 0:
+        await message.answer("Вы узнали все факты")
         await show_continue_keyboard(message)
+
+
+async def show_continue_keyboard(message: types.Message):
+    place_index = get_user_place_index(message.from_user.id)
+    if place_index < len(literary_places):
+        if place_index % 2 == 0:
+            await message.answer("Продолжим наш путь, Господа!", reply_markup=keyboard_continue_1f)
+        else:
+            await message.answer("Продолжим наш путь, Господа!", reply_markup=keyboard_continuef)
+    else:
+        await message.answer('Молодец! Вы завершили квест!')
+
+
+
+
 
