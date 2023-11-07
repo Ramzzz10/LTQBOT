@@ -2,6 +2,8 @@ from another_defs import *
 from keyboards import *
 from aiogram import Bot, types, Dispatcher
 import logging
+from config import API_TOKEN,CHANNEL_ID
+
 
 logging.basicConfig(level=logging.INFO)
 
