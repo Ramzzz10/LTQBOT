@@ -21,7 +21,7 @@
 + Загрузите фотографии на сервер или хостинг. После загрузки фотографий, у вас будет URL-адрес каждой фотографии.
   
 + После замените значения photo в моем словаре literary_places на URL-адреса фотографий. Например:
-  'photo': 'https://example.com/path/to/your/image.jpg'
+    "'photo': 'https://example.com/path/to/your/image.jpg'"
 
 
 # Лицензия 
