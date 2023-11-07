@@ -5,8 +5,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-API_TOKEN = "5911014461:AAEpNu3TJxxOy5Pr22AXjSn1qJ-f6bex-8A"
-CHANNEL_ID = '@RaptorsSquad'
+
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
