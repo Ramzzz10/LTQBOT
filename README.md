@@ -13,7 +13,10 @@
 
 # Сама карта
 
-![IMG_5811](https://github.com/Ramzzz10/LTQBOT/assets/93703127/658a92ae-2730-4bf5-89fe-3d0fa2e344be)
+
+
+<img src="https://github.com/Ramzzz10/LTQBOT/assets/93703127/658a92ae-2730-4bf5-89fe-3d0fa2e344be" width="200" />
+
 
 ## Вывод фотографий
 
